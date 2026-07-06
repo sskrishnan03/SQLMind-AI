@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   Send,
   MessagesSquare,
@@ -19,6 +19,70 @@ import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/store/useAppStore";
 import { cn } from "@/lib/utils";
 import type { DatabaseDialect } from "@/lib/types";
+
+function renderInline(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*]+\*)/g;
+  let lastIdx = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIdx) parts.push(text.slice(lastIdx, match.index));
+    if (match[1]) parts.push(<code key={parts.length} className="rounded bg-white/10 px-1.5 py-0.5 text-[13px] font-mono text-accent">{match[1].slice(1, -1)}</code>);
+    else if (match[2]) parts.push(<strong key={parts.length} className="font-semibold text-white">{match[2].slice(2, -2)}</strong>);
+    else if (match[3]) parts.push(<em key={parts.length} className="italic text-white/90">{match[3].slice(1, -1)}</em>);
+    lastIdx = match.index + match[0].length;
+  }
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  return parts;
+}
+
+function renderBlocks(text: string): React.ReactNode[] {
+  const blocks = text.split(/\n\n+/);
+  const elements: React.ReactNode[] = [];
+  let inList: "ul" | "ol" | null = null;
+  let listItems: React.ReactNode[] = [];
+
+  function flushList() {
+    if (inList && listItems.length > 0) {
+      elements.push(
+        inList === "ul" ? (
+          <ul key={elements.length} className="list-disc space-y-1 pl-5">{listItems}</ul>
+        ) : (
+          <ol key={elements.length} className="list-decimal space-y-1 pl-5">{listItems}</ol>
+        )
+      );
+      listItems = [];
+      inList = null;
+    }
+  }
+
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (!trimmed) continue;
+    const lines = trimmed.split("\n").filter((l) => l.trim());
+
+    if (lines.every((l) => /^[-*]\s/.test(l))) {
+      if (inList !== "ul") { flushList(); inList = "ul"; }
+      for (const line of lines) {
+        listItems.push(<li key={`li-${listItems.length}`} className="text-sm text-white/85 leading-relaxed">{renderInline(line.replace(/^[-*]\s/, ""))}</li>);
+      }
+    } else if (lines.every((l) => /^\d+[.)]\s/.test(l))) {
+      if (inList !== "ol") { flushList(); inList = "ol"; }
+      for (const line of lines) {
+        listItems.push(<li key={`li-${listItems.length}`} className="text-sm text-white/85 leading-relaxed">{renderInline(line.replace(/^\d+[.)]\s/, ""))}</li>);
+      }
+    } else {
+      flushList();
+      elements.push(
+        <p key={elements.length} className="whitespace-pre-wrap break-words text-sm text-white/85 leading-relaxed">
+          {renderInline(trimmed)}
+        </p>
+      );
+    }
+  }
+  flushList();
+  return elements;
+}
 
 const SUGGESTIONS = ["Why this JOIN?", "Explain the HAVING clause", "How do I optimize this?"];
 
@@ -360,7 +424,7 @@ export function ChatPanel({ sql, dialect }: ChatPanelProps) {
                           )}
                         </div>
                       </div>
-                      <div className="text-sm leading-relaxed text-white/85 whitespace-pre-wrap break-words">{m.content}</div>
+                      <div className="text-sm leading-relaxed text-white/85 whitespace-pre-wrap break-words">{m.role === "assistant" ? renderBlocks(m.content) : m.content}</div>
                     </div>
                   </div>
                 )}

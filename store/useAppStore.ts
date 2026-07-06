@@ -123,7 +123,7 @@ export const useAppStore = create<AppState>()(
             s.id === sessionId
               ? {
                   ...s,
-                  messages: [...s.messages, newMsg],
+                  messages: [...(s.messages.length >= 50 ? s.messages.slice(-49) : s.messages), newMsg],
                   updatedAt: Date.now(),
                   title: s.messages.length === 0 && message.role === "user" ? message.content.slice(0, 60) : s.title,
                 }

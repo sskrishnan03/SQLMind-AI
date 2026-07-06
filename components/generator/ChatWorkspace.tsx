@@ -564,7 +564,7 @@ export function ChatWorkspace({ open, onClose, sql, dialect }: ChatWorkspaceProp
           <div className="px-3 pb-2">
             <button
               onClick={handleNewChat}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/10 py-2 text-xs text-white/40 hover:text-white hover:border-accent/30 hover:bg-accent/5 transition-all"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/10 py-2 text-xs text-white/40 hover:text-white hover:border-accent/30 hover:bg-accent/5 active:scale-[0.98] transition-all duration-100 will-change-transform"
             >
               <Plus className="h-3.5 w-3.5" />
               New Chat
@@ -618,7 +618,7 @@ export function ChatWorkspace({ open, onClose, sql, dialect }: ChatWorkspaceProp
                                 onClick={() => handleSelectChat(s.id)}
                                 onContextMenu={(e) => handleContextMenu(e, s.id)}
                                 className={cn(
-                                  "w-full text-left px-2.5 py-2 rounded-lg transition-all group/item",
+                                  "w-full text-left px-2.5 py-2 rounded-lg transition-all duration-100 group/item",
                                   isActive
                                     ? "bg-accent/10 border-l-2 border-accent"
                                     : "hover:bg-white/[0.04] border-l-2 border-transparent"
@@ -676,7 +676,7 @@ export function ChatWorkspace({ open, onClose, sql, dialect }: ChatWorkspaceProp
                     <button
                       key={s.label}
                       onClick={() => send(s.prompt)}
-                      className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-center hover:border-accent/30 hover:bg-accent/5 transition-all group"
+                      className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-center hover:border-accent/30 hover:bg-accent/5 active:scale-[0.97] transition-all duration-100 will-change-transform group"
                     >
                       <s.icon className="h-5 w-5 text-white/30 group-hover:text-accent transition-colors" />
                       <span className="text-xs text-white/50 group-hover:text-white/80">{s.label}</span>
@@ -795,7 +795,7 @@ export function ChatWorkspace({ open, onClose, sql, dialect }: ChatWorkspaceProp
                       <button
                         onClick={() => send(input)}
                         disabled={loading || !input.trim()}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 text-white shadow-lg shadow-accent/20 disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-accent/30 transition-all"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 text-white shadow-lg shadow-accent/20 disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-accent/30 active:scale-[0.95] transition-all duration-100 will-change-transform"
                       >
                         <Send className="h-4 w-4" />
                       </button>

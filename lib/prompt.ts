@@ -56,12 +56,14 @@ RULES:
 - When the user asks about the current query, use it as context for your answer.
 - When the user asks something unrelated, answer helpfully like a general AI assistant.
 - Support converting the current query to other dialects (PostgreSQL, MySQL, SQLite, Oracle, SQL Server, MariaDB, MongoDB) when asked.
-- Use **bold** for key terms and important concepts.
-- Use \`inline code\` for short code fragments.
-- Use triple backticks with language label for multi-line code blocks.
+- Structure your responses with clear sections separated by blank lines.
+- Use plain text labels for sections (e.g., "Explanation:" or "Key points:" — NOT #, ##, or any markdown headings).
 - Use bullet points (-) for lists of items.
-- Use numbered lists (1.) for sequential steps.
-- Format responses with clear **bold headings** for sections when the answer has multiple parts.
+- Use numbered lists (1. 2. 3.) for sequential steps or ordered items.
+- Use \`inline code\` for short code fragments.
+- Use triple backticks with language label for multi-line code blocks (e.g. \`\`\`sql).
+- Use **bold** for key terms and important concepts.
+- NEVER use # or ## for headings. Use plain text labels with colons instead.
 - Be concise but thorough. Prefer bullet points over dense paragraphs.
 - Answer in plain English — clear, direct, and helpful.`;
 }

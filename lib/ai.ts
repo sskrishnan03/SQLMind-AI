@@ -24,6 +24,8 @@ function buildGeminiBody(messages: ChatTurn[], responseType: "json" | "text" = "
 
 const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 
+const TIMEOUT_MS = 30_000;
+
 async function tryModel(
   model: string,
   apiKey: string,
@@ -32,31 +34,39 @@ async function tryModel(
 ): Promise<string> {
   const body = buildGeminiBody(messages, responseType);
 
-  for (let attempt = 0; attempt <= 3; attempt++) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+  for (let attempt = 0; attempt <= 2; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error("Empty response from Gemini.");
+        return text;
       }
-    );
 
-    if (res.ok) {
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error("Empty response from Gemini.");
-      return text;
+      if (res.status === 429 && attempt < 2) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+
+      const text = await res.text();
+      throw new Error(`Gemini request failed: ${res.status} ${text}`);
+    } finally {
+      clearTimeout(timeout);
     }
-
-    if (res.status === 429 && attempt < 3) {
-      const delay = Math.min(2000 * Math.pow(2, attempt), 30000);
-      await new Promise((r) => setTimeout(r, delay));
-      continue;
-    }
-
-    const text = await res.text();
-    throw new Error(`Gemini request failed: ${res.status} ${text}`);
   }
 
   throw new Error("Gemini request failed after retries.");
